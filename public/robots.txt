@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://arcwright-site-production.up.railway.app/sitemap.xml

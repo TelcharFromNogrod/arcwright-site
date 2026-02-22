@@ -10,6 +10,7 @@
   <meta property="og:title" content="Arcwright — AI Agent Skills & Tools" id="og-title">
   <meta property="og:description" content="Production-ready skills, personas, and playbooks for AI agents. Pay with crypto, instant delivery." id="og-description">
   <meta property="og:url" content="" id="og-url">
+  <script defer data-domain="arcwright-site-production.up.railway.app" src="https://plausible.io/js/script.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%23f59e0b'>A</text></svg>">
   <style>
     :root {
@@ -166,6 +167,24 @@
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--text); }
 
+    /* Skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    .skeleton-text { height: 16px; margin-bottom: 10px; }
+    .skeleton-title { height: 36px; width: 70%; margin-bottom: 12px; }
+    .skeleton-price { height: 30px; width: 120px; margin-bottom: 20px; }
+    .skeleton-line { height: 14px; margin-bottom: 8px; }
+    .skeleton-line:nth-child(odd) { width: 90%; }
+    .skeleton-line:nth-child(even) { width: 75%; }
+
     @media (max-width: 600px) {
       .product-header h1 { font-size: 1.7rem; }
       .product-price { font-size: 1.5rem; }
@@ -191,8 +210,8 @@
 
   <div class="product-header">
     <div class="product-tag" id="product-tag"></div>
-    <h1 id="product-name">Loading...</h1>
-    <div class="product-price" id="product-price"></div>
+    <h1 id="product-name"><div class="skeleton skeleton-title"></div></h1>
+    <div class="product-price" id="product-price"><div class="skeleton skeleton-price"></div></div>
     <div class="product-actions">
       <a href="#" class="btn" id="buy-btn">Buy Now →</a>
     </div>
@@ -200,12 +219,12 @@
 
   <div class="product-section" id="section-overview">
     <h2>Overview</h2>
-    <p id="overview-text"></p>
+    <p id="overview-text"><span class="skeleton skeleton-line" style="display:block"></span><span class="skeleton skeleton-line" style="display:block"></span><span class="skeleton skeleton-line" style="display:block;width:60%"></span></p>
   </div>
 
   <div class="product-section" id="section-includes">
     <h2>What's Included</h2>
-    <ul id="includes-list"></ul>
+    <ul id="includes-list"><li style="list-style:none"><span class="skeleton skeleton-line" style="display:block"></span></li><li style="list-style:none"><span class="skeleton skeleton-line" style="display:block"></span></li><li style="list-style:none"><span class="skeleton skeleton-line" style="display:block"></span></li></ul>
   </div>
 
   <div class="product-section" id="section-for">
@@ -340,12 +359,22 @@
     document.getElementById('og-url').content = `https://arcwright-site-production.up.railway.app/product.html?slug=${slug}`;
 
     document.getElementById('product-tag').textContent = product.tag;
+    document.getElementById('product-name').innerHTML = '';
     document.getElementById('product-name').textContent = product.name;
+    document.getElementById('product-price').innerHTML = '';
     document.getElementById('product-price').textContent = `$${product.price}`;
+    if (slug === 'marketing-mega-bundle') {
+      const savings = document.createElement('div');
+      savings.style.cssText = 'background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:8px 14px;font-size:0.85rem;color:var(--accent);font-weight:600;margin-bottom:20px;display:inline-block;';
+      savings.textContent = '🔥 12 skills for $49 — less than $5 each';
+      document.getElementById('product-price').after(savings);
+    }
     document.getElementById('buy-btn').href = `/checkout.html?product=${slug}`;
+    document.getElementById('overview-text').innerHTML = '';
     document.getElementById('overview-text').textContent = product.overview;
 
     const list = document.getElementById('includes-list');
+    list.innerHTML = '';
     product.includes.forEach(item => {
       const li = document.createElement('li');
       li.textContent = item;

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — Arcwright</title>
+  <script defer data-domain="arcwright-site-production.up.railway.app" src="https://plausible.io/js/script.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%23f59e0b'>A</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
@@ -195,7 +196,17 @@
         <h2>✅ Payment Confirmed!</h2>
         <p style="margin-top:12px; color:var(--muted)">Your product is ready to download:</p>
         <a id="download-btn" href="#" class="btn" style="display:inline-block; margin-top:16px; text-decoration:none; text-align:center;">⬇ Download Product</a>
-        <p style="font-size:0.8rem; color:var(--muted); margin-top:16px;">Save your download link — it won't expire.<br>Questions? Email arcwrighthq@proton.me</p>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:20px;text-align:left;">
+          <p style="font-size:0.85rem;font-weight:600;margin-bottom:8px;">📋 Quick Setup</p>
+          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:4px;">1. Unzip and drop the files into your agent's workspace</p>
+          <p style="font-size:0.8rem;color:var(--muted);">2. Follow the README.md inside for configuration</p>
+        </div>
+        <div id="related-products" style="margin-top:20px;text-align:left;display:none;">
+          <p style="font-size:0.85rem;font-weight:600;margin-bottom:8px;">🔗 You might also like</p>
+          <div id="related-list"></div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:16px;">Save your download link — it won't expire.</p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Need help? <a href="mailto:arcwrighthq@proton.me" style="color:var(--accent2);text-decoration:none;">Email arcwrighthq@proton.me</a></p>
         <div class="status-badge status-confirmed">Paid</div>
       </div>
     </div>
@@ -344,6 +355,7 @@
           if (data.download_url) {
             document.getElementById('download-btn').href = data.download_url;
           }
+          showRelated();
         }
       } catch (err) {
         console.error('Poll error:', err);
@@ -358,6 +370,39 @@
       const orig = el.textContent;
       el.textContent = '✓ Copied!';
       setTimeout(() => { el.textContent = orig; }, 1500);
+    });
+  }
+
+  // Related products suggestions
+  const RELATED = {
+    'proactive-agent-playbook': [
+      { name: 'Maven — Marketing Mega Bundle', slug: 'marketing-mega-bundle', price: 49, desc: '12 marketing skills in one bundle' },
+      { name: 'Crypto Wallet Manager', slug: 'crypto-wallet-manager', price: 19, desc: 'Multi-chain wallet management' },
+    ],
+    'crypto-wallet-manager': [
+      { name: 'Maven — Marketing Mega Bundle', slug: 'marketing-mega-bundle', price: 49, desc: '12 marketing skills in one bundle' },
+      { name: 'Proactive Agent Playbook', slug: 'proactive-agent-playbook', price: 19, desc: 'Turn passive agents proactive' },
+    ],
+    'marketing-mega-bundle': [
+      { name: 'Proactive Agent Playbook', slug: 'proactive-agent-playbook', price: 19, desc: 'Turn passive agents proactive' },
+      { name: 'Crypto Wallet Manager', slug: 'crypto-wallet-manager', price: 19, desc: 'Multi-chain wallet management' },
+    ],
+  };
+
+  function showRelated() {
+    const related = RELATED[productSlug];
+    if (!related) return;
+    const container = document.getElementById('related-products');
+    const list = document.getElementById('related-list');
+    container.style.display = 'block';
+    related.forEach(r => {
+      const el = document.createElement('a');
+      el.href = `/product.html?slug=${r.slug}`;
+      el.style.cssText = 'display:block;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;text-decoration:none;color:var(--text);transition:border-color 0.2s;';
+      el.innerHTML = `<span style="font-weight:600;font-size:0.85rem;">${r.name}</span> <span style="color:var(--accent);font-weight:700;font-size:0.85rem;">$${r.price}</span><br><span style="font-size:0.8rem;color:var(--muted);">${r.desc}</span>`;
+      el.onmouseenter = () => el.style.borderColor = '#444';
+      el.onmouseleave = () => el.style.borderColor = 'var(--border)';
+      list.appendChild(el);
     });
   }
 

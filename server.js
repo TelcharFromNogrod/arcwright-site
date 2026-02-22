@@ -265,9 +265,14 @@ app.get('/api/download/:slug', (req, res) => {
   res.download(filePath);
 });
 
-// ============ SPA FALLBACK ============
+// ============ SPA FALLBACK / 404 ============
+const KNOWN_ROUTES = ['/', '/index.html', '/product.html', '/checkout.html'];
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  if (KNOWN_ROUTES.includes(req.path)) {
+    res.sendFile(path.join(__dirname, 'public', req.path === '/' ? 'index.html' : req.path.slice(1)));
+  } else {
+    res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  }
 });
 
 // ============ PAYMENT CONFIRMATION HANDLER ============

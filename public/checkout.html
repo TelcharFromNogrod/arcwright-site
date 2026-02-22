@@ -38,7 +38,6 @@
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     
-    /* Payment step */
     .payment-info { text-align: center; }
     .qr-container { margin: 20px auto; display: flex; justify-content: center; }
     .qr-container canvas { border-radius: 12px; }
@@ -52,6 +51,7 @@
       font-size: 0.7rem; color: var(--muted); font-family: -apple-system, sans-serif;
     }
     .amount-box { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin: 8px 0; }
+    .amount-usd { font-size: 0.85rem; color: var(--muted); }
     .timer { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
     .status-badge {
       display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 16px;
@@ -67,6 +67,7 @@
     .back-link:hover { color: var(--text); }
     
     .chain-info { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .crypto-preview { font-size: 0.85rem; color: var(--muted); margin-top: 4px; min-height: 20px; }
   </style>
 </head>
 <body>
@@ -87,9 +88,13 @@
       
       <div class="form-group">
         <label for="crypto">Pay with</label>
-        <select id="crypto">
-          <option value="USDC">USDC (Base)</option>
+        <select id="crypto" onchange="updatePreview()">
+          <option value="USDC:base">USDC on Base</option>
+          <option value="ETH:base">ETH on Base</option>
+          <option value="ETH:ethereum">ETH on Ethereum</option>
+          <option value="SOL:solana">SOL on Solana</option>
         </select>
+        <div class="crypto-preview" id="crypto-preview"></div>
       </div>
       
       <button class="btn" id="btn-pay" onclick="startPayment()">Continue to Payment</button>
@@ -100,6 +105,7 @@
       <div class="payment-info">
         <h2>Send Payment</h2>
         <div class="amount-box" id="pay-amount"></div>
+        <div class="amount-usd" id="pay-amount-usd"></div>
         <div class="chain-info" id="pay-chain"></div>
         
         <div class="qr-container">
@@ -135,25 +141,60 @@
   const productSlug = params.get('product');
   let paymentId = null;
   let pollTimer = null;
+  let productPriceUsd = 0;
+  let livePrices = { eth: 0, sol: 0 };
 
-  // Load product info
+  const CHAIN_LABELS = {
+    'base': 'Base network',
+    'ethereum': 'Ethereum mainnet',
+    'solana': 'Solana',
+  };
+
   async function loadProduct() {
     if (!productSlug) { window.location.href = '/'; return; }
     try {
-      const res = await fetch('/api/products');
-      const products = await res.json();
+      const [prodRes, priceRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/prices'),
+      ]);
+      const products = await prodRes.json();
       const product = products.find(p => p.slug === productSlug);
       if (!product) { window.location.href = '/'; return; }
+      
+      productPriceUsd = product.price_usd;
       document.getElementById('product-name').textContent = product.name;
       document.getElementById('product-price').textContent = `$${product.price_usd}`;
+
+      try {
+        livePrices = await priceRes.json();
+      } catch (e) {}
+      
+      updatePreview();
     } catch (err) {
       console.error('Failed to load product:', err);
+    }
+  }
+
+  function updatePreview() {
+    const [crypto] = document.getElementById('crypto').value.split(':');
+    const el = document.getElementById('crypto-preview');
+    
+    if (crypto === 'USDC') {
+      el.textContent = `≈ ${productPriceUsd} USDC`;
+    } else if (crypto === 'ETH' && livePrices.eth > 0) {
+      el.textContent = `≈ ${(productPriceUsd / livePrices.eth).toFixed(6)} ETH ($${livePrices.eth.toLocaleString()}/ETH)`;
+    } else if (crypto === 'SOL' && livePrices.sol > 0) {
+      el.textContent = `≈ ${(productPriceUsd / livePrices.sol).toFixed(6)} SOL ($${livePrices.sol.toLocaleString()}/SOL)`;
+    } else {
+      el.textContent = 'Fetching price...';
     }
   }
 
   async function startPayment() {
     const email = document.getElementById('email').value.trim();
     if (!email || !email.includes('@')) { alert('Please enter a valid email'); return; }
+    
+    const [cryptoType, chain] = document.getElementById('crypto').value.split(':');
     
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;
@@ -163,7 +204,7 @@
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, product_slug: productSlug, crypto: 'USDC', chain: 'base' }),
+        body: JSON.stringify({ email, product_slug: productSlug, crypto: cryptoType, chain }),
       });
       const data = await res.json();
       
@@ -171,21 +212,19 @@
       
       paymentId = data.payment_id;
       
-      // Show payment step
       document.getElementById('step-email').classList.remove('active');
       document.getElementById('step-pay').classList.add('active');
       
-      document.getElementById('pay-amount').textContent = `${data.amount_usd} USDC`;
-      document.getElementById('pay-chain').textContent = `on Base network`;
+      document.getElementById('pay-amount').textContent = `${data.amount_crypto} ${data.crypto}`;
+      document.getElementById('pay-amount-usd').textContent = `($${data.amount_usd} USD)`;
+      document.getElementById('pay-chain').textContent = `on ${CHAIN_LABELS[data.chain] || data.chain}`;
       document.getElementById('pay-address').textContent = data.pay_address;
       
-      // Generate QR code
       QRCode.toCanvas(document.getElementById('qr-canvas'), data.pay_address, {
         width: 200, margin: 2,
         color: { dark: '#e8e8e8', light: '#141414' }
       });
       
-      // Start polling for confirmation
       startPolling(data.expires_in_minutes);
       
     } catch (err) {
@@ -199,7 +238,6 @@
     const expireTime = Date.now() + expiresMin * 60 * 1000;
     
     pollTimer = setInterval(async () => {
-      // Update timer
       const remaining = Math.max(0, expireTime - Date.now());
       const min = Math.floor(remaining / 60000);
       const sec = Math.floor((remaining % 60000) / 1000);
@@ -213,7 +251,6 @@
         return;
       }
       
-      // Check payment status
       try {
         const res = await fetch(`/api/payment/${paymentId}`);
         const data = await res.json();
@@ -229,7 +266,7 @@
       } catch (err) {
         console.error('Poll error:', err);
       }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
   }
 
   function copyAddress() {

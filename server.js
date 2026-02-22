@@ -8,6 +8,8 @@ const { ethers } = require('ethers');
 const WalletDeriver = require('./lib/wallet');
 const db = require('./lib/db');
 const ChainMonitor = require('./lib/monitor');
+const SolanaMonitor = require('./lib/solana-monitor');
+const { fetchPrices, usdToCrypto } = require('./lib/prices');
 const { initMailer, deliverProduct } = require('./lib/delivery');
 
 const app = express();
@@ -17,6 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
 const TIMEOUT_MS = (parseInt(process.env.PAYMENT_TIMEOUT_MINUTES) || 30) * 60 * 1000;
+const SOL_ADDRESS = process.env.SOL_ADDRESS || '2EDnCQBcrNZmNfoFaVLKJWx2NhSxaBd3kTU5q7KLaGzb';
 
 // Initialize wallet deriver
 const wallet = new WalletDeriver(process.env.XPUB);
@@ -50,6 +53,14 @@ for (const [slug, info] of Object.entries(productFiles)) {
   });
 }
 
+// Valid payment methods
+const VALID_METHODS = {
+  'USDC:base': true,
+  'ETH:base': true,
+  'ETH:ethereum': true,
+  'SOL:solana': true,
+};
+
 // ============ API ROUTES ============
 
 // GET /api/products — list all products
@@ -63,12 +74,27 @@ app.get('/api/products', (req, res) => {
   })));
 });
 
+// GET /api/prices — current crypto prices
+app.get('/api/prices', async (req, res) => {
+  try {
+    const prices = await fetchPrices();
+    res.json(prices);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch prices' });
+  }
+});
+
 // POST /api/checkout — create a payment session
-app.post('/api/checkout', (req, res) => {
-  const { email, product_slug, crypto = 'USDC', chain = 'base' } = req.body;
+app.post('/api/checkout', async (req, res) => {
+  const { email, product_slug, crypto: cryptoType = 'USDC', chain = 'base' } = req.body;
 
   if (!email || !product_slug) {
     return res.status(400).json({ error: 'email and product_slug required' });
+  }
+
+  const methodKey = `${cryptoType}:${chain}`;
+  if (!VALID_METHODS[methodKey]) {
+    return res.status(400).json({ error: `Unsupported payment method: ${cryptoType} on ${chain}` });
   }
 
   const product = db.getProduct(product_slug);
@@ -76,11 +102,27 @@ app.post('/api/checkout', (req, res) => {
     return res.status(404).json({ error: 'Product not found' });
   }
 
-  // Generate unique payment address
-  const addressIndex = db.getNextAddressIndex();
-  const payAddress = wallet.getAddress(addressIndex);
+  // Calculate crypto amount
+  let amountCrypto;
+  try {
+    amountCrypto = await usdToCrypto(product.price_usd, cryptoType);
+  } catch (err) {
+    return res.status(503).json({ error: `Price unavailable for ${cryptoType}: ${err.message}` });
+  }
 
-  const paymentId = crypto.randomUUID ? crypto.randomUUID() : 
+  // Determine pay address
+  let payAddress, addressIndex;
+  if (cryptoType === 'SOL') {
+    // Solana uses a single receive address, matched by amount
+    payAddress = SOL_ADDRESS;
+    addressIndex = -1; // Not HD-derived
+  } else {
+    // EVM chains use HD-derived addresses (same address works on Base & Ethereum)
+    addressIndex = db.getNextAddressIndex();
+    payAddress = wallet.getAddress(addressIndex);
+  }
+
+  const paymentId = crypto.randomUUID ? crypto.randomUUID() :
     `pay_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
   db.createPayment({
@@ -88,19 +130,21 @@ app.post('/api/checkout', (req, res) => {
     email,
     productSlug: product_slug,
     amountUsd: product.price_usd,
-    crypto,
+    amountCrypto,
+    crypto: cryptoType,
     chain,
     payAddress,
     addressIndex,
   });
 
-  console.log(`[Checkout] Payment ${paymentId}: ${product.name} → ${payAddress} ($${product.price_usd})`);
+  console.log(`[Checkout] Payment ${paymentId}: ${product.name} → ${payAddress} (${amountCrypto} ${cryptoType} / $${product.price_usd})`);
 
   res.json({
     payment_id: paymentId,
     product: product.name,
     amount_usd: product.price_usd,
-    crypto,
+    amount_crypto: amountCrypto,
+    crypto: cryptoType,
     chain,
     pay_address: payAddress,
     expires_in_minutes: parseInt(process.env.PAYMENT_TIMEOUT_MINUTES) || 30,
@@ -119,6 +163,9 @@ app.get('/api/payment/:id', (req, res) => {
     status: payment.status,
     product_slug: payment.product_slug,
     amount_usd: payment.amount_usd,
+    amount_crypto: payment.amount_crypto,
+    crypto: payment.crypto,
+    chain: payment.chain,
     pay_address: payment.pay_address,
     tx_hash: payment.tx_hash,
     created_at: payment.created_at,
@@ -126,7 +173,6 @@ app.get('/api/payment/:id', (req, res) => {
     delivered_at: payment.delivered_at,
   };
 
-  // Include download URL when payment is confirmed or delivered
   if (payment.download_token && (payment.status === 'confirmed' || payment.status === 'delivered')) {
     const baseUrl = process.env.SITE_URL || `${req.protocol}://${req.get('host')}`;
     resp.download_url = `${baseUrl}/api/download/${payment.product_slug}?token=${payment.download_token}`;
@@ -136,7 +182,6 @@ app.get('/api/payment/:id', (req, res) => {
 });
 
 // ============ x402 PAYMENT PROTOCOL ============
-// Agent-to-agent HTTP payments: pay with USDC, get product in response
 
 app.get('/api/x402/products/:slug', (req, res) => {
   const product = db.getProduct(req.params.slug);
@@ -144,7 +189,6 @@ app.get('/api/x402/products/:slug', (req, res) => {
     return res.status(404).json({ error: 'Product not found' });
   }
 
-  // Return 402 with payment requirements
   const addressIndex = db.getNextAddressIndex();
   const payAddress = wallet.getAddress(addressIndex);
 
@@ -156,7 +200,7 @@ app.get('/api/x402/products/:slug', (req, res) => {
       network: 'base',
       asset: 'USDC',
       address: payAddress,
-      amount: (product.price_usd * 1e6).toString(), // atomic units (6 decimals)
+      amount: (product.price_usd * 1e6).toString(),
       amount_usd: product.price_usd,
     }],
     product: {
@@ -169,8 +213,8 @@ app.get('/api/x402/products/:slug', (req, res) => {
 });
 
 app.post('/api/x402/products/:slug', (req, res) => {
-  const { tx_hash, pay_address } = req.body;
-  
+  const { tx_hash } = req.body;
+
   if (!tx_hash) {
     return res.status(400).json({ error: 'tx_hash required' });
   }
@@ -180,12 +224,8 @@ app.post('/api/x402/products/:slug', (req, res) => {
     return res.status(404).json({ error: 'Product not found' });
   }
 
-  // For x402, we verify the tx on-chain then return a download URL
-  // For now, we'll trust the tx_hash and verify async
-  // In production, we'd verify the tx before responding
-  
   const paymentId = `x402_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  
+
   res.json({
     status: 'ok',
     payment_id: paymentId,
@@ -195,14 +235,13 @@ app.post('/api/x402/products/:slug', (req, res) => {
   });
 });
 
-// Download endpoint — validates token against payment record
+// Download endpoint
 app.get('/api/download/:slug', (req, res) => {
   const { token } = req.query;
   if (!token) {
     return res.status(401).json({ error: 'Token required' });
   }
 
-  // Verify token matches a confirmed/delivered payment
   const payment = db.getPaymentByToken(token);
   if (!payment || payment.product_slug !== req.params.slug) {
     return res.status(403).json({ error: 'Invalid or expired download token' });
@@ -219,7 +258,6 @@ app.get('/api/download/:slug', (req, res) => {
     return res.status(404).json({ error: 'Product file not found' });
   }
 
-  // Mark as delivered on first download
   if (payment.status === 'confirmed') {
     db.markDelivered(payment.id);
   }
@@ -232,27 +270,52 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ============ PAYMENT CONFIRMATION HANDLER ============
+function handlePaymentConfirmed(chainLabel) {
+  return async (payment, txHash, amount) => {
+    console.log(`[Payment:${chainLabel}] Confirmed: ${payment.id} — ${amount} ${payment.crypto}`);
+    const downloadToken = crypto.randomBytes(32).toString('hex');
+    db.confirmPayment(payment.id, txHash, downloadToken);
+    await deliverProduct({ ...payment, download_token: downloadToken });
+  };
+}
+
 // ============ START ============
 app.listen(PORT, () => {
   console.log(`[Arcwright] Server running on port ${PORT}`);
 
-  // Start chain monitor
-  const monitor = new ChainMonitor({
+  // Base chain monitor (USDC + ETH on Base)
+  const baseMonitor = new ChainMonitor({
     rpcUrl: process.env.BASE_RPC || 'https://mainnet.base.org',
     usdcContract: process.env.USDC_CONTRACT,
-    onPaymentConfirmed: async (payment, txHash, amount) => {
-      console.log(`[Payment] Confirmed: ${payment.id} — $${amount} USDC`);
-      // Generate secure download token
-      const downloadToken = crypto.randomBytes(32).toString('hex');
-      db.confirmPayment(payment.id, txHash, downloadToken);
-      // Also attempt email delivery if mailer configured
-      await deliverProduct({ ...payment, download_token: downloadToken });
-    },
+    chainName: 'base',
+    onPaymentConfirmed: handlePaymentConfirmed('base'),
   });
-  monitor.start();
+  baseMonitor.start();
+
+  // Ethereum mainnet monitor (ETH only)
+  const ethRpc = process.env.ETH_MAINNET_RPC || 'https://eth.llamarpc.com';
+  const ethMonitor = new ChainMonitor({
+    rpcUrl: ethRpc,
+    usdcContract: null, // No USDC monitoring on mainnet
+    chainName: 'ethereum',
+    onPaymentConfirmed: handlePaymentConfirmed('ethereum'),
+  });
+  ethMonitor.start();
+
+  // Solana monitor (SOL)
+  const solMonitor = new SolanaMonitor({
+    rpcUrl: process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com',
+    receiveAddress: SOL_ADDRESS,
+    onPaymentConfirmed: handlePaymentConfirmed('solana'),
+  });
+  solMonitor.start();
 
   // Expire old payments every minute
   setInterval(() => {
     db.expireOldPayments(TIMEOUT_MS);
   }, 60000);
+
+  // Pre-fetch prices on boot
+  fetchPrices().catch(() => {});
 });

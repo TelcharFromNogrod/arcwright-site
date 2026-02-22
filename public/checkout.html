@@ -67,7 +67,26 @@
     .back-link:hover { color: var(--text); }
     
     .chain-info { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-    .crypto-preview { font-size: 0.85rem; color: var(--muted); margin-top: 4px; min-height: 20px; }
+    .crypto-preview { font-size: 0.85rem; color: var(--muted); margin-top: 8px; min-height: 20px; }
+    
+    .crypto-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .crypto-option {
+      display: block; cursor: pointer; border: 2px solid var(--border); border-radius: 12px;
+      padding: 12px 10px; transition: border-color 0.2s, background 0.2s;
+    }
+    .crypto-option:hover { border-color: #444; }
+    .crypto-option.selected { border-color: var(--accent); background: rgba(245,158,11,0.06); }
+    .crypto-option input[type="radio"] { display: none; }
+    .crypto-option-inner { display: flex; align-items: center; gap: 10px; }
+    .crypto-icons { position: relative; width: 36px; height: 36px; flex-shrink: 0; }
+    .crypto-icon { width: 36px; height: 36px; border-radius: 50%; background: #222; }
+    .chain-icon {
+      width: 16px; height: 16px; border-radius: 50%; position: absolute; bottom: -2px; right: -4px;
+      border: 2px solid var(--surface); background: #222;
+    }
+    .crypto-label { display: flex; flex-direction: column; }
+    .crypto-name { font-weight: 700; font-size: 0.95rem; }
+    .chain-name { font-size: 0.75rem; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -88,12 +107,60 @@
       
       <div class="form-group">
         <label for="crypto">Pay with</label>
-        <select id="crypto" onchange="updatePreview()">
-          <option value="USDC:base">USDC on Base</option>
-          <option value="ETH:base">ETH on Base</option>
-          <option value="ETH:ethereum">ETH on Ethereum</option>
-          <option value="SOL:solana">SOL on Solana</option>
-        </select>
+        <div class="crypto-options" id="crypto-options">
+          <label class="crypto-option selected" data-value="USDC:base">
+            <input type="radio" name="crypto" value="USDC:base" checked>
+            <div class="crypto-option-inner">
+              <div class="crypto-icons">
+                <img src="https://cryptologos.cc/logos/usd-coin-usdc-logo.svg" alt="USDC" class="crypto-icon">
+                <img src="https://avatars.githubusercontent.com/u/108554348?s=200" alt="Base" class="chain-icon">
+              </div>
+              <div class="crypto-label">
+                <span class="crypto-name">USDC</span>
+                <span class="chain-name">Base</span>
+              </div>
+            </div>
+          </label>
+          <label class="crypto-option" data-value="ETH:base">
+            <input type="radio" name="crypto" value="ETH:base">
+            <div class="crypto-option-inner">
+              <div class="crypto-icons">
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg" alt="ETH" class="crypto-icon">
+                <img src="https://avatars.githubusercontent.com/u/108554348?s=200" alt="Base" class="chain-icon">
+              </div>
+              <div class="crypto-label">
+                <span class="crypto-name">ETH</span>
+                <span class="chain-name">Base</span>
+              </div>
+            </div>
+          </label>
+          <label class="crypto-option" data-value="ETH:ethereum">
+            <input type="radio" name="crypto" value="ETH:ethereum">
+            <div class="crypto-option-inner">
+              <div class="crypto-icons">
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg" alt="ETH" class="crypto-icon">
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg" alt="Ethereum" class="chain-icon">
+              </div>
+              <div class="crypto-label">
+                <span class="crypto-name">ETH</span>
+                <span class="chain-name">Ethereum</span>
+              </div>
+            </div>
+          </label>
+          <label class="crypto-option" data-value="SOL:solana">
+            <input type="radio" name="crypto" value="SOL:solana">
+            <div class="crypto-option-inner">
+              <div class="crypto-icons">
+                <img src="https://cryptologos.cc/logos/solana-sol-logo.svg" alt="SOL" class="crypto-icon">
+                <img src="https://cryptologos.cc/logos/solana-sol-logo.svg" alt="Solana" class="chain-icon">
+              </div>
+              <div class="crypto-label">
+                <span class="crypto-name">SOL</span>
+                <span class="chain-name">Solana</span>
+              </div>
+            </div>
+          </label>
+        </div>
         <div class="crypto-preview" id="crypto-preview"></div>
       </div>
       
@@ -170,13 +237,27 @@
       } catch (e) {}
       
       updatePreview();
+      
+      // Bind radio button changes
+      document.querySelectorAll('.crypto-option input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          document.querySelectorAll('.crypto-option').forEach(o => o.classList.remove('selected'));
+          radio.closest('.crypto-option').classList.add('selected');
+          updatePreview();
+        });
+      });
     } catch (err) {
       console.error('Failed to load product:', err);
     }
   }
 
+  function getSelectedCrypto() {
+    const checked = document.querySelector('input[name="crypto"]:checked');
+    return checked ? checked.value : 'USDC:base';
+  }
+
   function updatePreview() {
-    const [crypto] = document.getElementById('crypto').value.split(':');
+    const [crypto] = getSelectedCrypto().split(':');
     const el = document.getElementById('crypto-preview');
     
     if (crypto === 'USDC') {
@@ -194,7 +275,7 @@
     const email = document.getElementById('email').value.trim();
     if (!email || !email.includes('@')) { alert('Please enter a valid email'); return; }
     
-    const [cryptoType, chain] = document.getElementById('crypto').value.split(':');
+    const [cryptoType, chain] = getSelectedCrypto().split(':');
     
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;

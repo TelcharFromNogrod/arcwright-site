@@ -109,18 +109,6 @@
       transition: opacity 0.2s;
     }
     .btn:hover { opacity: 0.85; }
-    .guarantee {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      background: rgba(34, 197, 94, 0.08);
-      border: 1px solid rgba(34, 197, 94, 0.2);
-      border-radius: 8px;
-      font-size: 0.8rem;
-      color: #22c55e;
-    }
-
     .product-section {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -207,8 +195,12 @@
     <div class="product-price" id="product-price"></div>
     <div class="product-actions">
       <a href="#" class="btn" id="buy-btn">Buy Now →</a>
-      <div class="guarantee">🛡️ 30-day money-back guarantee</div>
     </div>
+  </div>
+
+  <div class="product-section" id="section-overview">
+    <h2>Overview</h2>
+    <p id="overview-text"></p>
   </div>
 
   <div class="product-section" id="section-includes">
@@ -239,6 +231,7 @@
       name: 'Maven — Marketing Mega Bundle',
       tag: 'Persona Bundle',
       price: 49,
+      overview: 'Maven is a complete AI marketing team in a box. It\'s a drop-in persona with 12 specialized skills that lets your AI agent handle SEO audits, write converting copy, plan launches, run A/B tests, manage paid ads, craft email sequences, and more — all working together under one cohesive strategy. Instead of hiring a marketing agency, plug Maven into your agent and let it execute.',
       includes: [
         'SEO audit skill',
         'Copywriting skill',
@@ -278,6 +271,7 @@
       name: 'Proactive Agent Playbook',
       tag: 'Skill',
       price: 19,
+      overview: 'Most AI agents wait for instructions and forget everything between sessions. This playbook gives your agent the architecture to think ahead, recover from its own mistakes, and improve over time. It covers memory systems that survive context windows, patterns for surfacing ideas you didn\'t ask for, self-healing when things break, and alignment systems that keep it on mission without constant supervision.',
       includes: [
         'Memory architecture with pre-compaction flush',
         'Reverse prompting patterns',
@@ -305,6 +299,7 @@
       name: 'Crypto Wallet Manager',
       tag: 'Skill',
       price: 19,
+      overview: 'Give your AI agent the ability to manage crypto wallets across Solana and EVM chains without the risk of catastrophic mistakes. Built-in approval queues ensure large transactions need human sign-off, while safety limits and guardrails prevent accidental fund loss. Supports balance tracking, token transfers, HD wallet derivation, and portfolio monitoring out of the box.',
       includes: [
         'Multi-chain wallet management (Solana + EVM)',
         'Balance tracking & portfolio view',
@@ -348,6 +343,7 @@
     document.getElementById('product-name').textContent = product.name;
     document.getElementById('product-price').textContent = `$${product.price}`;
     document.getElementById('buy-btn').href = `/checkout.html?product=${slug}`;
+    document.getElementById('overview-text').textContent = product.overview;
 
     const list = document.getElementById('includes-list');
     product.includes.forEach(item => {

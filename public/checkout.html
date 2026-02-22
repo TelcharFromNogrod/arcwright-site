@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Arcwright</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --border: #222;
+      --text: #e8e8e8; --muted: #888; --accent: #f59e0b; --accent2: #3b82f6;
+      --green: #22c55e; --red: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    
+    .checkout { max-width: 440px; width: 100%; margin: 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+    .logo { font-size: 1.2rem; font-weight: 700; margin-bottom: 24px; text-align: center; }
+    .logo span { color: var(--accent); }
+    
+    h2 { font-size: 1.3rem; margin-bottom: 4px; }
+    .price-tag { font-size: 1.8rem; font-weight: 800; color: var(--accent); margin-bottom: 24px; }
+    
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    select { cursor: pointer; }
+    
+    .btn {
+      width: 100%; padding: 14px; background: var(--accent); color: #000; font-weight: 700;
+      font-size: 1rem; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    /* Payment step */
+    .payment-info { text-align: center; }
+    .qr-container { margin: 20px auto; display: flex; justify-content: center; }
+    .qr-container canvas { border-radius: 12px; }
+    .address-box {
+      font-family: monospace; font-size: 0.75rem; background: var(--bg); padding: 12px;
+      border-radius: 10px; word-break: break-all; color: var(--accent2); margin: 12px 0;
+      cursor: pointer; position: relative;
+    }
+    .address-box:hover::after {
+      content: 'Click to copy'; position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+      font-size: 0.7rem; color: var(--muted); font-family: -apple-system, sans-serif;
+    }
+    .amount-box { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin: 8px 0; }
+    .timer { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+    .status-badge {
+      display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-top: 16px;
+    }
+    .status-pending { background: rgba(245,158,11,0.15); color: var(--accent); }
+    .status-confirmed { background: rgba(34,197,94,0.15); color: var(--green); }
+    .status-expired { background: rgba(239,68,68,0.15); color: var(--red); }
+    
+    .step { display: none; }
+    .step.active { display: block; }
+    
+    .back-link { display: block; text-align: center; margin-top: 16px; color: var(--muted); text-decoration: none; font-size: 0.85rem; }
+    .back-link:hover { color: var(--text); }
+    
+    .chain-info { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="checkout">
+  <div class="card">
+    <div class="logo">Arc<span>wright</span></div>
+    
+    <!-- Step 1: Email & Crypto Selection -->
+    <div id="step-email" class="step active">
+      <h2 id="product-name">Loading...</h2>
+      <div class="price-tag" id="product-price"></div>
+      
+      <div class="form-group">
+        <label for="email">Email (for delivery)</label>
+        <input type="email" id="email" placeholder="you@example.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="crypto">Pay with</label>
+        <select id="crypto">
+          <option value="USDC">USDC (Base)</option>
+        </select>
+      </div>
+      
+      <button class="btn" id="btn-pay" onclick="startPayment()">Continue to Payment</button>
+    </div>
+    
+    <!-- Step 2: Payment Address & QR -->
+    <div id="step-pay" class="step">
+      <div class="payment-info">
+        <h2>Send Payment</h2>
+        <div class="amount-box" id="pay-amount"></div>
+        <div class="chain-info" id="pay-chain"></div>
+        
+        <div class="qr-container">
+          <canvas id="qr-canvas"></canvas>
+        </div>
+        
+        <div class="address-box" id="pay-address" onclick="copyAddress()"></div>
+        
+        <p style="font-size:0.8rem; color:var(--muted)">Send exact amount to the address above</p>
+        
+        <div class="timer" id="timer">Waiting for payment...</div>
+        <div id="status-container"></div>
+      </div>
+    </div>
+    
+    <!-- Step 3: Confirmed -->
+    <div id="step-done" class="step">
+      <div class="payment-info">
+        <h2>✅ Payment Confirmed!</h2>
+        <p style="margin-top:12px; color:var(--muted)">Your product has been sent to:</p>
+        <p style="font-weight:600; margin:8px 0;" id="confirm-email"></p>
+        <p style="font-size:0.85rem; color:var(--muted); margin-top:16px;">Check your inbox (and spam folder). If you don't receive it within 10 minutes, email arcwrighthq@proton.me</p>
+        <div class="status-badge status-confirmed">Delivered</div>
+      </div>
+    </div>
+  </div>
+  
+  <a href="/" class="back-link">← Back to Arcwright</a>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const productSlug = params.get('product');
+  let paymentId = null;
+  let pollTimer = null;
+
+  // Load product info
+  async function loadProduct() {
+    if (!productSlug) { window.location.href = '/'; return; }
+    try {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      const product = products.find(p => p.slug === productSlug);
+      if (!product) { window.location.href = '/'; return; }
+      document.getElementById('product-name').textContent = product.name;
+      document.getElementById('product-price').textContent = `$${product.price_usd}`;
+    } catch (err) {
+      console.error('Failed to load product:', err);
+    }
+  }
+
+  async function startPayment() {
+    const email = document.getElementById('email').value.trim();
+    if (!email || !email.includes('@')) { alert('Please enter a valid email'); return; }
+    
+    const btn = document.getElementById('btn-pay');
+    btn.disabled = true;
+    btn.textContent = 'Creating payment...';
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, product_slug: productSlug, crypto: 'USDC', chain: 'base' }),
+      });
+      const data = await res.json();
+      
+      if (data.error) { alert(data.error); btn.disabled = false; btn.textContent = 'Continue to Payment'; return; }
+      
+      paymentId = data.payment_id;
+      
+      // Show payment step
+      document.getElementById('step-email').classList.remove('active');
+      document.getElementById('step-pay').classList.add('active');
+      
+      document.getElementById('pay-amount').textContent = `${data.amount_usd} USDC`;
+      document.getElementById('pay-chain').textContent = `on Base network`;
+      document.getElementById('pay-address').textContent = data.pay_address;
+      
+      // Generate QR code
+      QRCode.toCanvas(document.getElementById('qr-canvas'), data.pay_address, {
+        width: 200, margin: 2,
+        color: { dark: '#e8e8e8', light: '#141414' }
+      });
+      
+      // Start polling for confirmation
+      startPolling(data.expires_in_minutes);
+      
+    } catch (err) {
+      alert('Payment creation failed. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Continue to Payment';
+    }
+  }
+
+  function startPolling(expiresMin) {
+    const expireTime = Date.now() + expiresMin * 60 * 1000;
+    
+    pollTimer = setInterval(async () => {
+      // Update timer
+      const remaining = Math.max(0, expireTime - Date.now());
+      const min = Math.floor(remaining / 60000);
+      const sec = Math.floor((remaining % 60000) / 1000);
+      document.getElementById('timer').textContent = remaining > 0 
+        ? `Expires in ${min}:${sec.toString().padStart(2, '0')}`
+        : 'Payment expired';
+      
+      if (remaining <= 0) {
+        clearInterval(pollTimer);
+        document.getElementById('status-container').innerHTML = '<div class="status-badge status-expired">Expired</div>';
+        return;
+      }
+      
+      // Check payment status
+      try {
+        const res = await fetch(`/api/payment/${paymentId}`);
+        const data = await res.json();
+        
+        if (data.status === 'confirmed' || data.status === 'delivered') {
+          clearInterval(pollTimer);
+          document.getElementById('step-pay').classList.remove('active');
+          document.getElementById('step-done').classList.add('active');
+          document.getElementById('confirm-email').textContent = document.getElementById('email').value;
+        }
+      } catch (err) {
+        console.error('Poll error:', err);
+      }
+    }, 5000); // Poll every 5 seconds
+  }
+
+  function copyAddress() {
+    const addr = document.getElementById('pay-address').textContent;
+    navigator.clipboard.writeText(addr).then(() => {
+      const el = document.getElementById('pay-address');
+      const orig = el.textContent;
+      el.textContent = '✓ Copied!';
+      setTimeout(() => { el.textContent = orig; }, 1500);
+    });
+  }
+
+  loadProduct();
+</script>
+
+</body>
+</html>

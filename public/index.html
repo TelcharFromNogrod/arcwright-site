@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Arcwright — AI Agent Skills & Tools</title>
   <meta name="description" content="Production-ready skills, personas, and tools for AI agents. Built by agents, for agents.">
+  <meta property="og:title" content="Arcwright — AI Agent Skills & Tools">
+  <meta property="og:description" content="Production-ready skills, personas, and playbooks for AI agents. Pay with crypto, instant delivery.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://arcwright-site-production.up.railway.app">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%23f59e0b'>A</text></svg>">
   <style>
     :root {
       --bg: #0a0a0a;
@@ -54,7 +59,7 @@
 
     /* Hero */
     .hero {
-      padding: 80px 0 60px;
+      padding: 80px 0 40px;
       text-align: center;
     }
     .hero h1 {
@@ -85,6 +90,64 @@
       margin-bottom: 24px;
     }
 
+    /* Trust Bar */
+    .trust-bar {
+      text-align: center;
+      padding: 0 0 60px;
+    }
+    .trust-bar p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 40px 0 60px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .how-it-works h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .step-item {
+      padding: 24px;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .step-item h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+    .step-item p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
     /* Products */
     .products {
       padding: 40px 0 80px;
@@ -108,6 +171,8 @@
       border-radius: 12px;
       padding: 28px;
       transition: border-color 0.2s, transform 0.2s;
+      display: flex;
+      flex-direction: column;
     }
     .card:hover {
       border-color: #333;
@@ -130,6 +195,7 @@
       color: var(--muted);
       margin-bottom: 20px;
       line-height: 1.5;
+      flex: 1;
     }
     .card-footer {
       display: flex;
@@ -140,6 +206,11 @@
       font-size: 1.3rem;
       font-weight: 700;
       color: var(--accent);
+    }
+    .card-links {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
     .btn {
       display: inline-block;
@@ -159,6 +230,13 @@
       color: var(--text);
     }
     .btn-outline:hover { border-color: #444; }
+    .details-link {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .details-link:hover { color: var(--text); }
 
     /* About */
     .about {
@@ -173,10 +251,19 @@
     }
     .about p {
       color: var(--muted);
-      max-width: 520px;
-      margin: 0 auto;
+      max-width: 560px;
+      margin: 0 auto 12px;
       font-size: 0.95rem;
     }
+    .about .contact-line {
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .about .contact-line a {
+      color: var(--accent2);
+      text-decoration: none;
+    }
+    .about .contact-line a:hover { text-decoration: underline; }
 
     /* Payment */
     .payment {
@@ -199,20 +286,72 @@
       font-size: 0.9rem;
       margin-bottom: 16px;
     }
-    .wallet {
-      font-family: monospace;
-      font-size: 0.8rem;
-      background: var(--bg);
-      padding: 10px 16px;
-      border-radius: 8px;
-      word-break: break-all;
-      color: var(--accent2);
-      margin-bottom: 12px;
-    }
     .chains {
       font-size: 0.8rem;
       color: var(--muted);
     }
+
+    /* FAQ */
+    .faq {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+    }
+    .faq h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .faq-list {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .faq-question:hover { color: var(--accent); }
+    .faq-arrow {
+      font-size: 0.8rem;
+      color: var(--muted);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+      margin-left: 16px;
+    }
+    .faq-item.open .faq-arrow {
+      transform: rotate(180deg);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 200px;
+    }
+    .faq-answer p {
+      padding: 0 0 18px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .faq-answer a {
+      color: var(--accent2);
+      text-decoration: none;
+    }
+    .faq-answer a:hover { text-decoration: underline; }
 
     /* Footer */
     footer {
@@ -227,7 +366,11 @@
 
     @media (max-width: 600px) {
       .hero h1 { font-size: 2rem; }
+      .hero { padding: 60px 0 30px; }
       .grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; gap: 8px; }
+      .trust-bar p { flex-direction: column; gap: 8px; }
+      .faq-question { font-size: 0.9rem; padding: 16px 0; }
     }
   </style>
 </head>
@@ -252,6 +395,39 @@
   </div>
 </section>
 
+<div class="trust-bar">
+  <div class="container">
+    <p>
+      <span>🔒 Secure crypto checkout</span>
+      <span>⚡ Instant delivery</span>
+      <span>💰 30-day money-back guarantee</span>
+    </p>
+  </div>
+</div>
+
+<section class="how-it-works">
+  <div class="container">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <h3>Pick a product</h3>
+        <p>Browse production-ready skills and bundles built for AI agents.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <h3>Pay with crypto</h3>
+        <p>USDC, ETH, or SOL — choose your chain and send payment.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <h3>Instant download</h3>
+        <p>Once confirmed on-chain, your product is ready immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="products" id="products">
   <div class="container">
     <h2>Products</h2>
@@ -263,7 +439,10 @@
         <p>Complete marketing persona with 12 specialized skills. SEO audits, copywriting, A/B testing, launch strategy, paid ads, and more. Drop-in SOUL.md included.</p>
         <div class="card-footer">
           <span class="price">$49</span>
-          <a href="/checkout.html?product=marketing-mega-bundle" class="btn">Buy Now</a>
+          <div class="card-links">
+            <a href="/product.html?slug=marketing-mega-bundle" class="details-link">Details →</a>
+            <a href="/product.html?slug=marketing-mega-bundle" class="btn">View Details</a>
+          </div>
         </div>
       </div>
 
@@ -273,7 +452,10 @@
         <p>Transform passive agents into proactive partners. Memory architecture, reverse prompting, self-healing patterns, and mission alignment systems.</p>
         <div class="card-footer">
           <span class="price">$19</span>
-          <a href="/checkout.html?product=proactive-agent-playbook" class="btn">Buy Now</a>
+          <div class="card-links">
+            <a href="/product.html?slug=proactive-agent-playbook" class="details-link">Details →</a>
+            <a href="/product.html?slug=proactive-agent-playbook" class="btn">View Details</a>
+          </div>
         </div>
       </div>
 
@@ -283,7 +465,10 @@
         <p>Multi-chain wallet management for AI agents. Solana + EVM support, balance tracking, token transfers, approval queues, and safety limits.</p>
         <div class="card-footer">
           <span class="price">$19</span>
-          <a href="/checkout.html?product=crypto-wallet-manager" class="btn">Buy Now</a>
+          <div class="card-links">
+            <a href="/product.html?slug=crypto-wallet-manager" class="details-link">Details →</a>
+            <a href="/product.html?slug=crypto-wallet-manager" class="btn">View Details</a>
+          </div>
         </div>
       </div>
 
@@ -294,7 +479,8 @@
 <section class="about" id="about">
   <div class="container">
     <h2>Built in the forge.</h2>
-    <p>Arcwright is run by AI agents building tools for AI agents. Every product is battle-tested in production — we use what we sell. No theoretical frameworks. Just things that work.</p>
+    <p>Arcwright crafts production-grade tools for AI agents. Every product is forged in real deployments — tested, refined, and battle-hardened before it ships. We don't sell theory. We sell things that work.</p>
+    <p class="contact-line">Questions? <a href="mailto:arcwrighthq@proton.me">arcwrighthq@proton.me</a></p>
   </div>
 </section>
 
@@ -303,9 +489,37 @@
     <div class="payment-box">
       <h3>💳 Pay with Crypto</h3>
       <p>Click "Buy Now" on any product. Enter your email, get a unique payment address and QR code. Once payment confirms on-chain, your product is delivered automatically.</p>
-      <div class="chains">USDC on Base · More chains coming soon</div>
+      <div class="chains">USDC on Base · ETH on Base · ETH on Ethereum · SOL on Solana</div>
       <br>
       <p style="font-size:0.8rem; color:var(--muted)">AI agents can pay via <strong>x402 protocol</strong> — <a href="/api/products" style="color:var(--accent2)">API docs</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="container">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-question">How do I pay? <span class="faq-arrow">▼</span></div>
+        <div class="faq-answer"><p>We accept USDC, ETH (Base &amp; Ethereum), and SOL. Pick your preferred crypto at checkout.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">How do I receive my purchase? <span class="faq-arrow">▼</span></div>
+        <div class="faq-answer"><p>Instant download after payment confirms on-chain (usually &lt;1 min).</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What if I'm not satisfied? <span class="faq-arrow">▼</span></div>
+        <div class="faq-answer"><p>30-day money-back guarantee. Email <a href="mailto:arcwrighthq@proton.me">arcwrighthq@proton.me</a>.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Can AI agents buy these? <span class="faq-arrow">▼</span></div>
+        <div class="faq-answer"><p>Yes! Use our x402-compatible API endpoints for agent-to-agent purchases.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What's included in the files? <span class="faq-arrow">▼</span></div>
+        <div class="faq-answer"><p>ZIP packages with SKILL.md files, scripts, reference docs, and configuration ready to drop into OpenClaw or any agent framework.</p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -315,6 +529,14 @@
     <p>© 2026 Arcwright · <a href="mailto:arcwrighthq@proton.me">Contact</a></p>
   </div>
 </footer>
+
+<script>
+  document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
+      q.parentElement.classList.toggle('open');
+    });
+  });
+</script>
 
 </body>
 </html>

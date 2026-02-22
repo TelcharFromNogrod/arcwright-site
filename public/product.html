@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading... — Arcwright</title>
+  <meta name="description" content="Production-ready skills, personas, and playbooks for AI agents.">
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Arcwright">
+  <meta property="og:title" content="Arcwright — AI Agent Skills & Tools" id="og-title">
+  <meta property="og:description" content="Production-ready skills, personas, and playbooks for AI agents. Pay with crypto, instant delivery." id="og-description">
+  <meta property="og:url" content="" id="og-url">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%23f59e0b'>A</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #222;
+      --text: #e8e8e8;
+      --muted: #888;
+      --accent: #f59e0b;
+      --accent2: #3b82f6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    header {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .logo a { color: var(--text); text-decoration: none; }
+    .logo span { color: var(--accent); }
+    header nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 24px;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    header nav a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-block;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin: 32px 0 24px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text); }
+
+    .product-header {
+      margin-bottom: 40px;
+    }
+    .product-tag {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .product-header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .product-price {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .product-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .guarantee {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #22c55e;
+    }
+
+    .product-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .product-section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .product-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .product-section ul li {
+      padding: 6px 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .product-section ul li::before {
+      content: '✦ ';
+      color: var(--accent);
+    }
+    .product-section p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .preview-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      white-space: pre-line;
+      line-height: 1.8;
+    }
+    .preview-block .heading {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    footer {
+      padding: 24px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 60px;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) {
+      .product-header h1 { font-size: 1.7rem; }
+      .product-price { font-size: 1.5rem; }
+      .product-actions { flex-direction: column; align-items: flex-start; }
+      .product-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="logo"><a href="/">Arc<span>wright</span></a></div>
+    <nav>
+      <a href="/#products">Products</a>
+      <a href="/#about">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <a href="/" class="back-link">← Back to all products</a>
+
+  <div class="product-header">
+    <div class="product-tag" id="product-tag"></div>
+    <h1 id="product-name">Loading...</h1>
+    <div class="product-price" id="product-price"></div>
+    <div class="product-actions">
+      <a href="#" class="btn" id="buy-btn">Buy Now →</a>
+      <div class="guarantee">🛡️ 30-day money-back guarantee</div>
+    </div>
+  </div>
+
+  <div class="product-section" id="section-includes">
+    <h2>What's Included</h2>
+    <ul id="includes-list"></ul>
+  </div>
+
+  <div class="product-section" id="section-for">
+    <h2>Who It's For</h2>
+    <p id="for-text"></p>
+  </div>
+
+  <div class="product-section">
+    <h2>Preview</h2>
+    <div class="preview-block" id="preview-block"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>© 2026 Arcwright · <a href="mailto:arcwrighthq@proton.me">Contact</a></p>
+  </div>
+</footer>
+
+<script>
+  const PRODUCTS = {
+    'marketing-mega-bundle': {
+      name: 'Maven — Marketing Mega Bundle',
+      tag: 'Persona Bundle',
+      price: 49,
+      includes: [
+        'SEO audit skill',
+        'Copywriting skill',
+        'A/B testing skill',
+        'Launch strategy skill',
+        'Paid ads skill',
+        'Email sequences skill',
+        'Conversion rate optimization (CRO) skill',
+        'Pricing strategy skill',
+        'Social content skill',
+        'Competitor analysis skill',
+        'Schema markup skill',
+        'Programmatic SEO skill',
+        'Drop-in SOUL.md persona',
+      ],
+      forText: 'Founders, marketers, and anyone who wants a full AI marketing team. Drop it into your agent and get 12 specialized marketing skills working together under one persona.',
+      preview:
+        '<span class="heading">📦 maven-marketing-mega-bundle.zip</span>\n' +
+        '├── SOUL.md — Maven persona definition\n' +
+        '├── skills/\n' +
+        '│   ├── seo-audit/SKILL.md\n' +
+        '│   ├── copywriting/SKILL.md\n' +
+        '│   ├── ab-testing/SKILL.md\n' +
+        '│   ├── launch-strategy/SKILL.md\n' +
+        '│   ├── paid-ads/SKILL.md\n' +
+        '│   ├── email-sequences/SKILL.md\n' +
+        '│   ├── cro/SKILL.md\n' +
+        '│   ├── pricing-strategy/SKILL.md\n' +
+        '│   ├── social-content/SKILL.md\n' +
+        '│   ├── competitor-analysis/SKILL.md\n' +
+        '│   ├── schema-markup/SKILL.md\n' +
+        '│   └── programmatic-seo/SKILL.md\n' +
+        '├── config/\n' +
+        '└── README.md',
+    },
+    'proactive-agent-playbook': {
+      name: 'Proactive Agent Playbook',
+      tag: 'Skill',
+      price: 19,
+      includes: [
+        'Memory architecture with pre-compaction flush',
+        'Reverse prompting patterns',
+        'Self-healing error recovery',
+        'Mission alignment framework',
+        'Security hardening guide',
+        'Reference implementation scripts',
+      ],
+      forText: 'AI agent builders who want agents that learn and improve autonomously. Stop babysitting your agents — give them the architecture to self-correct, remember, and stay on mission.',
+      preview:
+        '<span class="heading">📦 proactive-agent-playbook.zip</span>\n' +
+        '├── SKILL.md — Core playbook\n' +
+        '├── patterns/\n' +
+        '│   ├── memory-architecture.md\n' +
+        '│   ├── pre-compaction-flush.md\n' +
+        '│   ├── reverse-prompting.md\n' +
+        '│   ├── self-healing.md\n' +
+        '│   └── mission-alignment.md\n' +
+        '├── security/\n' +
+        '│   └── hardening-checklist.md\n' +
+        '├── scripts/\n' +
+        '└── README.md',
+    },
+    'crypto-wallet-manager': {
+      name: 'Crypto Wallet Manager',
+      tag: 'Skill',
+      price: 19,
+      includes: [
+        'Multi-chain wallet management (Solana + EVM)',
+        'Balance tracking & portfolio view',
+        'Token transfer execution',
+        'Approval queue system',
+        'Safety limits & guardrails',
+        'HD wallet derivation',
+        'Configuration templates',
+      ],
+      forText: 'AI agents that need to handle crypto transactions safely. Built-in approval queues and safety limits mean your agent can move money without losing it.',
+      preview:
+        '<span class="heading">📦 crypto-wallet-manager.zip</span>\n' +
+        '├── SKILL.md — Core skill definition\n' +
+        '├── chains/\n' +
+        '│   ├── evm.md\n' +
+        '│   └── solana.md\n' +
+        '├── safety/\n' +
+        '│   ├── approval-queue.md\n' +
+        '│   └── limits.md\n' +
+        '├── scripts/\n' +
+        '│   ├── balance-check.js\n' +
+        '│   └── transfer.js\n' +
+        '├── config/\n' +
+        '└── README.md',
+    },
+  };
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const product = PRODUCTS[slug];
+
+  if (!product) {
+    window.location.href = '/';
+  } else {
+    document.title = `${product.name} — Arcwright`;
+    document.getElementById('og-title').content = `${product.name} — Arcwright`;
+    document.getElementById('og-description').content = `$${product.price} — ${product.includes.slice(0, 3).join(', ')}, and more. Pay with crypto, instant delivery.`;
+    document.getElementById('og-url').content = `https://arcwright-site-production.up.railway.app/product.html?slug=${slug}`;
+
+    document.getElementById('product-tag').textContent = product.tag;
+    document.getElementById('product-name').textContent = product.name;
+    document.getElementById('product-price').textContent = `$${product.price}`;
+    document.getElementById('buy-btn').href = `/checkout.html?product=${slug}`;
+
+    const list = document.getElementById('includes-list');
+    product.includes.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      list.appendChild(li);
+    });
+
+    document.getElementById('for-text').textContent = product.forText;
+    document.getElementById('preview-block').innerHTML = product.preview;
+  }
+</script>
+
+</body>
+</html>

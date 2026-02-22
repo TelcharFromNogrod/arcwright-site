@@ -119,10 +119,10 @@
     <div id="step-done" class="step">
       <div class="payment-info">
         <h2>✅ Payment Confirmed!</h2>
-        <p style="margin-top:12px; color:var(--muted)">Your product has been sent to:</p>
-        <p style="font-weight:600; margin:8px 0;" id="confirm-email"></p>
-        <p style="font-size:0.85rem; color:var(--muted); margin-top:16px;">Check your inbox (and spam folder). If you don't receive it within 10 minutes, email arcwrighthq@proton.me</p>
-        <div class="status-badge status-confirmed">Delivered</div>
+        <p style="margin-top:12px; color:var(--muted)">Your product is ready to download:</p>
+        <a id="download-btn" href="#" class="btn" style="display:inline-block; margin-top:16px; text-decoration:none; text-align:center;">⬇ Download Product</a>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:16px;">Save your download link — it won't expire.<br>Questions? Email arcwrighthq@proton.me</p>
+        <div class="status-badge status-confirmed">Paid</div>
       </div>
     </div>
   </div>
@@ -222,7 +222,9 @@
           clearInterval(pollTimer);
           document.getElementById('step-pay').classList.remove('active');
           document.getElementById('step-done').classList.add('active');
-          document.getElementById('confirm-email').textContent = document.getElementById('email').value;
+          if (data.download_url) {
+            document.getElementById('download-btn').href = data.download_url;
+          }
         }
       } catch (err) {
         console.error('Poll error:', err);

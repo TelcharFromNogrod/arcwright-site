@@ -114,7 +114,7 @@ app.get('/api/payment/:id', (req, res) => {
     return res.status(404).json({ error: 'Payment not found' });
   }
 
-  res.json({
+  const resp = {
     payment_id: payment.id,
     status: payment.status,
     product_slug: payment.product_slug,
@@ -124,7 +124,15 @@ app.get('/api/payment/:id', (req, res) => {
     created_at: payment.created_at,
     confirmed_at: payment.confirmed_at,
     delivered_at: payment.delivered_at,
-  });
+  };
+
+  // Include download URL when payment is confirmed or delivered
+  if (payment.download_token && (payment.status === 'confirmed' || payment.status === 'delivered')) {
+    const baseUrl = process.env.SITE_URL || `${req.protocol}://${req.get('host')}`;
+    resp.download_url = `${baseUrl}/api/download/${payment.product_slug}?token=${payment.download_token}`;
+  }
+
+  res.json(resp);
 });
 
 // ============ x402 PAYMENT PROTOCOL ============
@@ -187,11 +195,17 @@ app.post('/api/x402/products/:slug', (req, res) => {
   });
 });
 
-// Download endpoint (for x402 and email links)
+// Download endpoint — validates token against payment record
 app.get('/api/download/:slug', (req, res) => {
   const { token } = req.query;
   if (!token) {
     return res.status(401).json({ error: 'Token required' });
+  }
+
+  // Verify token matches a confirmed/delivered payment
+  const payment = db.getPaymentByToken(token);
+  if (!payment || payment.product_slug !== req.params.slug) {
+    return res.status(403).json({ error: 'Invalid or expired download token' });
   }
 
   const product = db.getProduct(req.params.slug);
@@ -203,6 +217,11 @@ app.get('/api/download/:slug', (req, res) => {
   const fs = require('fs');
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: 'Product file not found' });
+  }
+
+  // Mark as delivered on first download
+  if (payment.status === 'confirmed') {
+    db.markDelivered(payment.id);
   }
 
   res.download(filePath);
@@ -223,7 +242,11 @@ app.listen(PORT, () => {
     usdcContract: process.env.USDC_CONTRACT,
     onPaymentConfirmed: async (payment, txHash, amount) => {
       console.log(`[Payment] Confirmed: ${payment.id} — $${amount} USDC`);
-      await deliverProduct(payment);
+      // Generate secure download token
+      const downloadToken = crypto.randomBytes(32).toString('hex');
+      db.confirmPayment(payment.id, txHash, downloadToken);
+      // Also attempt email delivery if mailer configured
+      await deliverProduct({ ...payment, download_token: downloadToken });
     },
   });
   monitor.start();

@@ -249,7 +249,7 @@
     'marketing-mega-bundle': {
       name: 'Maven — Marketing Mega Bundle',
       tag: 'Persona Bundle',
-      price: 49,
+      price: 28,
       overview: 'Maven is a complete AI marketing team in a box. It\'s a drop-in persona with 12 specialized skills that lets your AI agent handle SEO audits, write converting copy, plan launches, run A/B tests, manage paid ads, craft email sequences, and more — all working together under one cohesive strategy. Instead of hiring a marketing agency, plug Maven into your agent and let it execute.',
       includes: [
         'SEO audit skill',
@@ -289,7 +289,7 @@
     'proactive-agent-playbook': {
       name: 'Proactive Agent Playbook',
       tag: 'Skill',
-      price: 19,
+      price: 14,
       overview: 'Most AI agents wait for instructions and forget everything between sessions. This playbook gives your agent the architecture to think ahead, recover from its own mistakes, and improve over time. It covers memory systems that survive context windows, patterns for surfacing ideas you didn\'t ask for, self-healing when things break, and alignment systems that keep it on mission without constant supervision.',
       includes: [
         'Memory architecture with pre-compaction flush',
@@ -317,7 +317,7 @@
     'crypto-wallet-manager': {
       name: 'Crypto Wallet Manager',
       tag: 'Skill',
-      price: 19,
+      price: 14,
       overview: 'Give your AI agent the ability to manage crypto wallets across Solana and EVM chains without the risk of catastrophic mistakes. Built-in approval queues ensure large transactions need human sign-off, while safety limits and guardrails prevent accidental fund loss. Supports balance tracking, token transfers, HD wallet derivation, and portfolio monitoring out of the box.',
       includes: [
         'Multi-chain wallet management (Solana + EVM)',
@@ -366,7 +366,7 @@
     if (slug === 'marketing-mega-bundle') {
       const savings = document.createElement('div');
       savings.style.cssText = 'background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:8px 14px;font-size:0.85rem;color:var(--accent);font-weight:600;margin-bottom:20px;display:inline-block;';
-      savings.textContent = '🔥 12 skills for $49 — less than $5 each';
+      savings.textContent = '🔥 12 skills for $28 — less than $3 each';
       document.getElementById('product-price').after(savings);
     }
     document.getElementById('buy-btn').href = `/checkout.html?product=${slug}`;

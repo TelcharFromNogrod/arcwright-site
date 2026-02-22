@@ -37,9 +37,9 @@ if (process.env.SMTP_PASS) {
 // Seed products
 const productsDir = path.join(__dirname, 'products');
 const productFiles = {
-  'marketing-mega-bundle': { name: 'Maven — Marketing Mega Bundle', price: 49 },
-  'proactive-agent-playbook': { name: 'Proactive Agent Playbook', price: 19 },
-  'crypto-wallet-manager': { name: 'Crypto Wallet Manager', price: 19 },
+  'marketing-mega-bundle': { name: 'Maven — Marketing Mega Bundle', price: 28 },
+  'proactive-agent-playbook': { name: 'Proactive Agent Playbook', price: 14 },
+  'crypto-wallet-manager': { name: 'Crypto Wallet Manager', price: 14 },
 };
 
 for (const [slug, info] of Object.entries(productFiles)) {

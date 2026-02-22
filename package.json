@@ -1,0 +1,12 @@
+{
+  "name": "arcwright-site",
+  "version": "1.0.0",
+  "description": "Arcwright - AI Agent Skills & Tools",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

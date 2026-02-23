@@ -14,6 +14,46 @@ const { initMailer, deliverProduct } = require('./lib/delivery');
 
 const app = express();
 app.use(cors());
+
+// ============ STRIPE WEBHOOK (must be before express.json()) ============
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+const stripeLib = STRIPE_SECRET_KEY ? require('stripe')(STRIPE_SECRET_KEY) : null;
+
+app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripeLib || !STRIPE_WEBHOOK_SECRET) {
+    return res.status(503).json({ error: 'Stripe not configured' });
+  }
+
+  let event;
+  try {
+    event = stripeLib.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('[Stripe] Webhook signature verification failed:', err.message);
+    return res.status(400).json({ error: 'Invalid signature' });
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const paymentIdFromMeta = session.metadata && session.metadata.payment_id;
+    if (paymentIdFromMeta) {
+      const downloadToken = crypto.randomBytes(32).toString('hex');
+      db.confirmPayment(paymentIdFromMeta, session.payment_intent, downloadToken);
+      console.log(`[Stripe] Payment confirmed: ${paymentIdFromMeta}`);
+
+      // Attempt email delivery
+      const payment = db.getPayment(paymentIdFromMeta);
+      if (payment) {
+        deliverProduct({ ...payment, download_token: downloadToken }).catch(err => {
+          console.error('[Stripe] Email delivery error:', err.message);
+        });
+      }
+    }
+  }
+
+  res.json({ received: true });
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -149,6 +189,69 @@ app.post('/api/checkout', async (req, res) => {
     pay_address: payAddress,
     expires_in_minutes: parseInt(process.env.PAYMENT_TIMEOUT_MINUTES) || 30,
   });
+});
+
+// POST /api/checkout/stripe — create Stripe Checkout Session
+app.post('/api/checkout/stripe', async (req, res) => {
+  if (!stripeLib) {
+    return res.status(503).json({ error: 'Stripe not configured' });
+  }
+
+  const { email, product_slug } = req.body;
+  if (!email || !product_slug) {
+    return res.status(400).json({ error: 'email and product_slug required' });
+  }
+
+  const product = db.getProduct(product_slug);
+  if (!product) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+
+  const paymentId = crypto.randomUUID ? crypto.randomUUID() :
+    `pay_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+  const baseUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+
+  try {
+    const session = await stripeLib.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: email,
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: product.name },
+          unit_amount: Math.round(product.price_usd * 100),
+        },
+        quantity: 1,
+      }],
+      metadata: { payment_id: paymentId, product_slug },
+      success_url: `${baseUrl}/checkout.html?product=${product_slug}&payment_id=${paymentId}&stripe=success`,
+      cancel_url: `${baseUrl}/checkout.html?product=${product_slug}`,
+    });
+
+    // Create payment record
+    db.createPayment({
+      id: paymentId,
+      email,
+      productSlug: product_slug,
+      amountUsd: product.price_usd,
+      amountCrypto: product.price_usd,
+      crypto: 'STRIPE',
+      chain: 'stripe',
+      payAddress: session.id,
+      addressIndex: -1,
+    });
+
+    console.log(`[Stripe] Checkout session created: ${paymentId} → ${session.id}`);
+
+    res.json({
+      payment_id: paymentId,
+      checkout_url: session.url,
+    });
+  } catch (err) {
+    console.error('[Stripe] Session creation error:', err.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
 });
 
 // GET /api/payment/:id — check payment status

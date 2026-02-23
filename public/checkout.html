@@ -162,6 +162,18 @@
               </div>
             </div>
           </label>
+          <label class="crypto-option" data-value="CARD:stripe">
+            <input type="radio" name="crypto" value="CARD:stripe">
+            <div class="crypto-option-inner">
+              <div class="crypto-icons">
+                <div class="crypto-icon" style="display:flex;align-items:center;justify-content:center;font-size:20px;background:#1a1a2e;">💳</div>
+              </div>
+              <div class="crypto-label">
+                <span class="crypto-name">Card</span>
+                <span class="chain-name">Credit / Debit</span>
+              </div>
+            </div>
+          </label>
         </div>
         <div class="crypto-preview" id="crypto-preview"></div>
       </div>
@@ -272,7 +284,9 @@
     const [crypto] = getSelectedCrypto().split(':');
     const el = document.getElementById('crypto-preview');
     
-    if (crypto === 'USDC') {
+    if (crypto === 'CARD') {
+      el.textContent = `$${productPriceUsd} — Stripe Checkout`;
+    } else if (crypto === 'USDC') {
       el.textContent = `≈ ${productPriceUsd} USDC`;
     } else if (crypto === 'ETH' && livePrices.eth > 0) {
       el.textContent = `≈ ${(productPriceUsd / livePrices.eth).toFixed(6)} ETH ($${livePrices.eth.toLocaleString()}/ETH)`;
@@ -292,6 +306,26 @@
     const btn = document.getElementById('btn-pay');
     btn.disabled = true;
     btn.textContent = 'Creating payment...';
+
+    // Stripe card flow
+    if (cryptoType === 'CARD') {
+      try {
+        const res = await fetch('/api/checkout/stripe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, product_slug: productSlug }),
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); btn.disabled = false; btn.textContent = 'Continue to Payment'; return; }
+        // Redirect to Stripe Checkout
+        window.location.href = data.checkout_url;
+      } catch (err) {
+        alert('Payment creation failed. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Continue to Payment';
+      }
+      return;
+    }
 
     try {
       const res = await fetch('/api/checkout', {
@@ -406,7 +440,23 @@
     });
   }
 
-  loadProduct();
+  // Handle Stripe return
+  if (params.get('stripe') === 'success' && params.get('payment_id')) {
+    paymentId = params.get('payment_id');
+    loadProduct().then(() => {
+      document.getElementById('step-email').classList.remove('active');
+      document.getElementById('step-pay').classList.add('active');
+      document.getElementById('pay-amount').textContent = 'Processing...';
+      document.getElementById('pay-amount-usd').textContent = 'Card payment via Stripe';
+      document.getElementById('pay-chain').textContent = '';
+      document.getElementById('pay-address').textContent = 'Confirming your payment...';
+      document.getElementById('pay-address').style.cursor = 'default';
+      document.getElementById('qr-canvas').style.display = 'none';
+      startPolling(30);
+    });
+  } else {
+    loadProduct();
+  }
 </script>
 
 </body>

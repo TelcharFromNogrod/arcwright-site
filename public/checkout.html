@@ -6,7 +6,7 @@
   <title>Checkout — Arcwright</title>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="58c1f286-120a-4d9f-97b8-1c0df3ce118d"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='20' fill='%23f59e0b'>A</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
     :root {
       --bg: #0a0a0a; --surface: #141414; --border: #222;
@@ -339,18 +339,23 @@
       
       paymentId = data.payment_id;
       
-      document.getElementById('step-email').classList.remove('active');
-      document.getElementById('step-pay').classList.add('active');
-      
       document.getElementById('pay-amount').textContent = `${data.amount_crypto} ${data.crypto}`;
       document.getElementById('pay-amount-usd').textContent = `($${data.amount_usd} USD)`;
       document.getElementById('pay-chain').textContent = `on ${CHAIN_LABELS[data.chain] || data.chain}`;
       document.getElementById('pay-address').textContent = data.pay_address;
       
-      QRCode.toCanvas(document.getElementById('qr-canvas'), data.pay_address, {
-        width: 200, margin: 2,
-        color: { dark: '#e8e8e8', light: '#141414' }
-      });
+      // Generate QR code before showing payment screen
+      try {
+        await QRCode.toCanvas(document.getElementById('qr-canvas'), data.pay_address, {
+          width: 200, margin: 2,
+          color: { dark: '#e8e8e8', light: '#141414' }
+        });
+      } catch (qrErr) {
+        console.warn('QR code generation failed:', qrErr);
+      }
+      
+      document.getElementById('step-email').classList.remove('active');
+      document.getElementById('step-pay').classList.add('active');
       
       startPolling(data.expires_in_minutes);
       

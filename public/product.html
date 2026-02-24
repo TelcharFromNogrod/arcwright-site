@@ -346,6 +346,117 @@
     },
   };
 
+  PRODUCTS['crypto-payment-engine'] = {
+    name: 'Crypto Payment Engine',
+    tag: 'Infrastructure',
+    price: 24,
+    overview: 'The same engine powering this store — extracted into a clean, standalone package. Accept USDC, ETH, and SOL with zero payment processor fees. Uses HD wallet (xpub) derivation so your server generates unique payment addresses but can never spend funds. Money goes directly to your wallet. Includes chain monitors for Base, Ethereum, and Solana, SQLite payment tracking, QR code checkout, auto email delivery, and optional Stripe fallback for customers who prefer cards.',
+    includes: [
+      'HD wallet address derivation (xpub, non-custodial)',
+      'EVM chain monitor (USDC + ETH on Base & Ethereum)',
+      'Solana chain monitor (SOL transfers)',
+      'SQLite payment session tracking',
+      'QR code checkout UI',
+      'Real-time crypto price fetching (CoinGecko)',
+      'Auto email delivery via SMTP',
+      'Secure download tokens',
+      'x402 protocol endpoints',
+      'Optional Stripe Checkout fallback',
+      'Admin API for product management',
+      'Docker + Railway deploy configs',
+    ],
+    forText: 'Developers and indie hackers who want to accept crypto payments without middlemen. Perfect for digital products, SaaS, APIs, or any online business that wants zero-fee payments straight to their wallet.',
+    preview:
+      '<span class="heading">📦 crypto-payment-engine.zip</span>\n' +
+      '├── server.js — Express API + checkout flow\n' +
+      '├── lib/\n' +
+      '│   ├── wallet.js — HD wallet derivation\n' +
+      '│   ├── monitor.js — EVM chain monitor\n' +
+      '│   ├── solana-monitor.js — SOL monitor\n' +
+      '│   ├── db.js — SQLite payments DB\n' +
+      '│   ├── prices.js — CoinGecko prices\n' +
+      '│   └── delivery.js — Email delivery\n' +
+      '├── public/ — Checkout UI\n' +
+      '├── .env.example\n' +
+      '├── package.json\n' +
+      '└── README.md',
+  };
+
+  PRODUCTS['discord-bot-toolkit'] = {
+    name: 'Discord Bot Toolkit',
+    tag: 'Template',
+    price: 19,
+    overview: 'Stop wrestling with discord.js boilerplate. This toolkit gives you a clean, modular bot architecture with auto-discovered slash commands, AI chat powered by Groq\'s free tier (Llama 3.3 70B), auto-moderation with spam and content filtering, a webhook server for external integrations, cron-style scheduled messages, and a welcome system with embeds. Drop in a new command file and it\'s automatically registered — no routing code needed.',
+    includes: [
+      'Auto-discovered slash commands',
+      'AI chat via Groq free tier (Llama 3.3 70B)',
+      'Auto-moderation (spam detection, content filter, mod log)',
+      'Webhook server for external events (CI/CD, alerts)',
+      'Cron-style scheduled messages',
+      'Welcome system with embeds + auto-role',
+      '/ping, /ask, /poll, /remind, /info, /clear commands',
+      'Structured logging (pino)',
+      'Embed builder helpers',
+      'Docker + Railway deploy configs',
+    ],
+    forText: 'Anyone building a Discord bot — community managers, developers, server admins. Skip the boilerplate and ship a production bot in minutes instead of days.',
+    preview:
+      '<span class="heading">📦 discord-bot-toolkit.zip</span>\n' +
+      '├── src/\n' +
+      '│   ├── index.js — Bot entrypoint\n' +
+      '│   ├── commands/ — Auto-discovered\n' +
+      '│   │   ├── ping.js, ask.js, poll.js\n' +
+      '│   │   ├── remind.js, info.js, clear.js\n' +
+      '│   │   └── loader.js\n' +
+      '│   ├── events/ — Event handlers\n' +
+      '│   ├── modules/\n' +
+      '│   │   ├── ai.js — Multi-provider AI\n' +
+      '│   │   ├── automod.js — Spam + filter\n' +
+      '│   │   ├── webhooks.js — Express server\n' +
+      '│   │   └── scheduler.js — Cron jobs\n' +
+      '│   └── utils/\n' +
+      '├── deploy-commands.js\n' +
+      '├── Dockerfile\n' +
+      '└── README.md',
+  };
+
+  PRODUCTS['telegram-bot-starter'] = {
+    name: 'Telegram Bot Starter',
+    tag: 'Template',
+    price: 19,
+    overview: 'A production-ready Telegram bot built with grammY — the modern, fast, TypeScript-ready framework. Includes AI chat with per-user conversation memory, inline keyboards for interactive menus, per-user rate limiting, SQLite-backed user tracking with preferences, admin-only broadcast, and both polling (dev) and webhook (production) modes. External API server included for programmatic notifications.',
+    includes: [
+      'AI chat with Groq free tier + conversation memory',
+      'Inline keyboard builder',
+      'Per-user rate limiting with admin bypass',
+      'SQLite user tracking + preferences',
+      'Admin-only /broadcast to all users',
+      'Webhook mode (production) + polling mode (dev)',
+      'External notification API server',
+      'Auto-discovered commands',
+      'Request logging middleware',
+      'Docker + Railway deploy configs',
+    ],
+    forText: 'Developers building Telegram bots — whether for customer support, community management, notifications, or AI assistants. Production patterns without the boilerplate.',
+    preview:
+      '<span class="heading">📦 telegram-bot-starter.zip</span>\n' +
+      '├── src/\n' +
+      '│   ├── index.js — Bot entrypoint\n' +
+      '│   ├── commands/\n' +
+      '│   │   ├── start.js, help.js, ask.js\n' +
+      '│   │   ├── settings.js, broadcast.js\n' +
+      '│   ├── middleware/\n' +
+      '│   │   ├── rateLimit.js, auth.js, logger.js\n' +
+      '│   ├── modules/\n' +
+      '│   │   ├── ai.js — Multi-provider AI\n' +
+      '│   │   ├── keyboard.js — Inline builder\n' +
+      '│   │   ├── userStore.js — SQLite users\n' +
+      '│   │   └── webhook.js — API server\n' +
+      '│   └── utils/\n' +
+      '├── Dockerfile\n' +
+      '└── README.md',
+  };
+
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('slug');
   const product = PRODUCTS[slug];

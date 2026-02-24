@@ -457,6 +457,47 @@
       '└── README.md',
   };
 
+  PRODUCTS['trading-bot-scaffold'] = {
+    name: 'Trading Bot Scaffold',
+    tag: 'Framework',
+    price: 29,
+    overview: 'Not a black-box signal bot. A clean, extensible framework for building your own crypto trading strategies. Plug in your logic, connect any of 100+ exchanges via CCXT, and run in paper mode until you\'re confident. Includes proper risk management — Kelly criterion position sizing, trailing stop losses, daily loss limits, and a max drawdown circuit breaker. Backtest against historical data before risking real money.',
+    includes: [
+      'Core trading engine with configurable tick loop',
+      'SMA Crossover strategy (example)',
+      'RSI Mean Reversion strategy (example)',
+      'Strategy base class — easy to extend',
+      'Paper trading exchange (risk-free testing)',
+      'CCXT adapter (100+ exchanges)',
+      'Position sizing: Kelly criterion + fixed fractional',
+      'Stop losses: fixed + trailing',
+      'Daily loss limit + max drawdown circuit breaker',
+      'Technical indicators: SMA, EMA, RSI, MACD, Bollinger',
+      'Backtesting engine with performance reports',
+      'Telegram + webhook trade alerts',
+    ],
+    forText: 'Crypto traders and developers who want to build and test their own strategies. Not a get-rich-quick tool — a proper engineering framework for systematic trading.',
+    preview:
+      '<span class="heading">📦 trading-bot-scaffold.zip</span>\n' +
+      '├── src/\n' +
+      '│   ├── index.js — Bot runner\n' +
+      '│   ├── engine.js — Core trading engine\n' +
+      '│   ├── strategies/\n' +
+      '│   │   ├── base.js, sma-crossover.js\n' +
+      '│   │   └── rsi-mean-revert.js\n' +
+      '│   ├── exchanges/\n' +
+      '│   │   ├── paper.js, ccxt-adapter.js\n' +
+      '│   ├── risk/\n' +
+      '│   │   ├── position-sizer.js\n' +
+      '│   │   ├── stop-loss.js, limits.js\n' +
+      '│   ├── notify/ — Telegram + webhook\n' +
+      '│   └── utils/ — Config, indicators, candles\n' +
+      '├── backtest/\n' +
+      '│   └── runner.js — Historical backtester\n' +
+      '├── Dockerfile\n' +
+      '└── README.md',
+  };
+
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('slug');
   const product = PRODUCTS[slug];

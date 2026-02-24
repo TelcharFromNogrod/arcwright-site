@@ -82,6 +82,7 @@ const productFiles = {
   'crypto-wallet-manager': { name: 'Crypto Wallet Manager', price: 14 },
   'crypto-payment-engine': { name: 'Crypto Payment Engine — Self-Hosted, Non-Custodial', price: 24 },
   'discord-bot-toolkit': { name: 'Discord Bot Toolkit — AI, Moderation, Webhooks', price: 19 },
+  'telegram-bot-starter': { name: 'Telegram Bot Starter — AI, Keyboards, Rate Limiting', price: 19 },
 };
 
 for (const [slug, info] of Object.entries(productFiles)) {
